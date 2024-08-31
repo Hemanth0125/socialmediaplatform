@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Platform</title>
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f9fc;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .post {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .post:last-child {
+            border-bottom: none;
+        }
+
+        .post img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .post p {
+            margin: 10px 0;
+            color: #34495e;
+        }
+
+        .actions button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .actions button:hover {
+            background-color: #2ecc71;
+        }
+
+        .actions input {
+            margin-top: 10px;
+        }
+
+        .profile-pic {
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Social Media Platform</h1>
+
+        <div id="userProfile">
+            <h2>Profile</h2>
+            <div class="form-group">
+                <input type="text" id="profileUsername" placeholder="Enter username">
+                <button onclick="updateProfile()">Update Profile</button>
+            </div>
+        </div>
+
+        <div id="postSection">
+            <h2>Create Post</h2>
+            <div class="form-group">
+                <input type="text" id="postContent" placeholder="What's on your mind?">
+                <button onclick="createPost()">Create Post</button>
+            </div>
+        </div>
+
+        <h2>Posts</h2>
+        <div id="postsContainer"></div>
+    </div>
+
+    <script>
+        // JavaScript for Functionality
+
+        // Load profile and posts from localStorage
+        function loadData() {
+            const profile = localStorage.getItem('profile');
+            if (profile) {
+                document.getElementById('profileUsername').value = profile;
+            }
+
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            renderPosts(posts);
+        }
+
+        function updateProfile() {
+            const username = document.getElementById('profileUsername').value.trim();
+            if (username) {
+                localStorage.setItem('profile', username);
+                alert('Profile updated!');
+            }
+        }
+
+        function createPost() {
+            const username = localStorage.getItem('profile');
+            const content = document.getElementById('postContent').value.trim();
+            if (!username) {
+                alert('Please update your profile first.');
+                return;
+            }
+            if (content) {
+                const posts = JSON.parse(localStorage.getItem('posts')) || [];
+                const newPost = {
+                    id: new Date().toISOString(),
+                    username,
+                    content,
+                    likes: 0,
+                    comments: [],
+                    image: 'https://via.placeholder.com/600x400?text=Post+Image' // Placeholder image
+                };
+                posts.push(newPost);
+                localStorage.setItem('posts', JSON.stringify(posts));
+                document.getElementById('postContent').value = '';
+                renderPosts(posts);
+            }
+        }
+
+        function renderPosts(posts) {
+            const postsContainer = document.getElementById('postsContainer');
+            postsContainer.innerHTML = '';
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <div>
+                        <img src="https://via.placeholder.com/60?text=User" alt="Profile Pic" class="profile-pic">
+                        <strong>${post.username}</strong>
+                    </div>
+                    <img src="${post.image}" alt="Post Image">
+                    <p>${post.content}</p>
+                    <div class="actions">
+                        <button onclick="likePost('${post.id}')">Like (${post.likes})</button>
+                        <button onclick="commentOnPost('${post.id}')">Comment</button>
+                        <input type="text" id="comment-${post.id}" placeholder="Add a comment">
+                    </div>
+                    <div>
+                        ${post.comments.map(comment => `<p>${comment}</p>`).join('')}
+                    </div>
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        function likePost(postId) {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                post.likes++;
+                localStorage.setItem('posts', JSON.stringify(posts));
+                renderPosts(posts);
+            }
+        }
+
+        function commentOnPost(postId) {
+            const commentInput = document.getElementById(`comment-${postId}`);
+            const comment = commentInput.value.trim();
+            if (comment) {
+                const posts = JSON.parse(localStorage.getItem('posts')) || [];
+                const post = posts.find(p => p.id === postId);
+                if (post) {
+                    post.comments.push(comment);
+                    localStorage.setItem('posts', JSON.stringify(posts));
+                    commentInput.value = '';
+                    renderPosts(posts);
+                }
+            }
+        }
+
+        window.onload = loadData; // Load data when page loads
+    </script>
+</body>
+</html>
